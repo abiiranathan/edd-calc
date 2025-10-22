@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naegele's Rule Calculator</title>
+    <script src="./edd.js" defer></script>
+    <script src="./calculator.js" defer></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --error: #ef4444;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border: #475569;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 1.5rem;
+            padding: 3rem;
+            box-shadow: 0 20px 60px var(--shadow);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .input-group {
+            margin-bottom: 2rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper::before {
+            content: '📅';
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            font-size: 1.1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 0.75rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.05em;
+        }
+
+        input[type="text"]::placeholder {
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            background: var(--bg-primary);
+        }
+
+        .results {
+            display: grid;
+            gap: 1rem;
+            margin-top: 2rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-card {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .result-card.active::before {
+            opacity: 1;
+        }
+
+        .result-card:hover {
+            border-color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .result-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+        }
+
+        .result-value.empty {
+            color: var(--text-muted);
+            font-style: italic;
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        .result-value.error {
+            color: var(--error);
+            font-size: 1rem;
+        }
+
+        .result-value.success {
+            color: var(--success);
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border-radius: 2rem;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+
+        .status-dot.loading {
+            background: var(--primary);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-dot.ready {
+            background: var(--success);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        .info-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .info-section h3 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .info-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-section li {
+            padding: 0.5rem 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .info-section li::before {
+            content: '•';
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        @media (max-width: 640px) {
+            .card {
+                padding: 2rem 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .result-value {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>Naegele's Rule Calculator</h1>
+                <p>Calculate your Estimated Date of Delivery (EDD) and Weeks of Amenorrhea (WOA)</p>
+            </div>
+
+            <div class="status-indicator">
+                <span class="status-dot loading" id="statusDot"></span>
+                <span id="statusText">Initializing calculator...</span>
+            </div>
+
+            <div class="input-group">
+                <label for="lnmp">Last Normal Menstrual Period (LNMP)</label>
+                <div class="input-wrapper">
+                    <input type="text" name="lnmp" id="lnmp" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="results">
+                <div class="result-card" id="eddCard">
+                    <div class="result-label">Estimated Due Date</div>
+                    <div class="result-value empty" id="edd">Enter LNMP to calculate</div>
+                </div>
+
+                <div class="result-card" id="woaCard">
+                    <div class="result-label">Weeks of Amenorrhea</div>
+                    <div class="result-value empty" id="woa">Enter LNMP to calculate</div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>About This Calculator</h3>
+                <ul>
+                    <li><strong>WOA:</strong> Number of complete weeks and days since your last period</li>
+                    <li><strong>Format:</strong> Enter date as DD/MM/YYYY (e.g., 15/01/2024)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const lnmpInput = document.getElementById("lnmp");
+        const eddElement = document.getElementById("edd");
+        const woaElement = document.getElementById("woa");
+        const eddCard = document.getElementById("eddCard");
+        const woaCard = document.getElementById("woaCard");
+        const statusDot = document.getElementById("statusDot");
+        const statusText = document.getElementById("statusText");
+
+        let calculator = null;
+
+        // Auto-format date input
+        lnmpInput.addEventListener("input", (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+
+            if (value.length >= 2) {
+                value = value.slice(0, 2) + '/' + value.slice(2);
+            }
+            if (value.length >= 5) {
+                value = value.slice(0, 5) + '/' + value.slice(5, 9);
+            }
+
+            e.target.value = value;
+
+            if (!calculator) return;
+
+            const lnmp = value.trim();
+
+            if (!lnmp || lnmp.length < 10) {
+                resetResults();
+                return;
+            }
+
+            // Compute both EDD and WOA
+            const result = calculator.computeBoth(lnmp);
+
+            if (result.success) {
+                eddElement.innerText = result.edd;
+                eddElement.className = 'result-value success';
+                woaElement.innerText = result.woa;
+                woaElement.className = 'result-value success';
+                eddCard.classList.add('active');
+                woaCard.classList.add('active');
+            } else {
+                eddElement.innerText = result.error;
+                eddElement.className = 'result-value error';
+                woaElement.innerText = result.error;
+                woaElement.className = 'result-value error';
+                eddCard.classList.remove('active');
+                woaCard.classList.remove('active');
+            }
+        });
+
+        function resetResults() {
+            eddElement.innerText = 'Enter LNMP to calculate';
+            eddElement.className = 'result-value empty';
+            woaElement.innerText = 'Enter LNMP to calculate';
+            woaElement.className = 'result-value empty';
+            eddCard.classList.remove('active');
+            woaCard.classList.remove('active');
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initNaegelesCalculator()
+                .then(calc => {
+                    calculator = calc;
+                    statusDot.className = 'status-dot ready';
+                    statusText.innerText = 'Calculator ready';
+                    lnmpInput.focus();
+                })
+                .catch(error => {
+                    console.error('Failed to initialize calculator:', error);
+                    statusDot.style.background = 'var(--error)';
+                    statusText.innerText = 'Failed to load calculator';
+                    statusText.style.color = 'var(--error)';
+                });
+        });
+    </script>
+</body>
+
+</html>
