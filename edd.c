@@ -225,9 +225,10 @@ int naegeles_compute_woa(const char* lnmp, char* woa_out, size_t woa_out_size) {
 
     // Format the result conditionally
     if (days > 0) {
-        snprintf(woa_out, woa_out_size, "%d weeks, %d days", weeks, days);
+        snprintf(woa_out, woa_out_size, "%d %s, %d %s", weeks, weeks == 1 ? "week" : "weeks", days,
+                 days == 1 ? "day" : "days");
     } else {
-        snprintf(woa_out, woa_out_size, "%d weeks", weeks);
+        snprintf(woa_out, woa_out_size, "%d %s", weeks, weeks == 1 ? "week" : "weeks");
     }
 
     return NAEGELES_OK;
